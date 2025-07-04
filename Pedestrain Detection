@@ -1,0 +1,25 @@
+import cv2
+import imutils
+
+# Initialize HOG descriptor/person detector
+hog = cv2.HOGDescriptor()
+hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+
+# Load image
+image = cv2.imread('pedestrian1.png')
+image = imutils.resize(image, width=min(400, image.shape[1]))
+
+# Detect people in the image
+(regions, _) = hog.detectMultiScale(image,
+                                    winStride=(4, 4),
+                                    padding=(4, 4),
+                                    scale=1.05)
+
+# Draw bounding boxes for detected pedestrians
+for (x, y, w, h) in regions:
+    cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+# Show the output image with detections
+cv2.imshow("Pedestrian Detection", image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
