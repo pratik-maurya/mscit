@@ -1,0 +1,49 @@
+import torch
+import matplotlib.pyplot as plt
+from colorizers import *  # Local package, make sure it is in your PYTHONPATH
+
+# Load pre-trained colorization models and set them to evaluation mode
+c1 = eccv16(pretrained=True).eval()
+c2 = siggraph17(pretrained=True).eval()
+
+# Load input black & white image
+img = load_img('testbw1.jpg')
+
+# Preprocess image: resize and convert to tensor suitable for models
+(orig, rs) = preprocess_img(img, HW=(256, 256))
+
+# Create grayscale image tensor for display (original but no color channels)
+img_bw = postprocess_tens(orig, torch.cat((0*orig, 0*orig), dim=1))
+
+# Run colorization models
+img1 = postprocess_tens(orig, c1(rs).cpu())
+img2 = postprocess_tens(orig, c2(rs).cpu())
+
+# Save the results to files
+plt.imsave('s1.png', img1)
+plt.imsave('s2.png', img2)
+
+# Display images using matplotlib
+plt.figure(figsize=(12, 8))
+
+plt.subplot(2, 2, 1)
+plt.imshow(img)
+plt.title('Original Image')
+plt.axis('off')
+
+plt.subplot(2, 2, 2)
+plt.imshow(img_bw)
+plt.title('Input Black and White')
+plt.axis('off')
+
+plt.subplot(2, 2, 3)
+plt.imshow(img1)
+plt.title('Colored Image 1')
+plt.axis('off')
+
+plt.subplot(2, 2, 4)
+plt.imshow(img2)
+plt.title('Colored Image 2')
+plt.axis('off')
+
+plt.show()
