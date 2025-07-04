@@ -1,0 +1,44 @@
+import cv2
+import pytesseract
+
+# Path to Tesseract OCR executable
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+
+# Read the input image
+img = cv2.imread("imgtest1.jpg")
+
+# Convert to grayscale
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+# Apply Otsu's thresholding after inverse binary thresholding
+ret, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
+
+# Define rectangular kernel for dilation
+rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 20))
+
+# Dilate the image to connect text regions
+dilation = cv2.dilate(thresh1, rect_kernel, iterations=1)
+
+# Find contours on the dilated image
+contours, hierarchy = cv2.findContours(dilation, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+# Copy original image to draw rectangles
+im2 = img.copy()
+
+# Loop over contours and extract text
+for cnt in contours:
+    x, y, w, h = cv2.boundingRect(cnt)
+    # Draw rectangle around detected text block
+    rect = cv2.rectangle(im2, (x, y), (x + w, y + h), (0, 255, 0), 2)
+   
+    # Crop the detected region
+    cropped = im2[y:y + h, x:x + w]
+   
+    # Use pytesseract to recognize text from the cropped region
+    text = pytesseract.image_to_string(cropped)
+    print(text)
+
+# Optionally, show the image with rectangles (uncomment if needed)
+# cv2.imshow('Detected Text', im2)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
