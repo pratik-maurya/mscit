@@ -1,0 +1,47 @@
+import numpy as np
+import cv2
+
+# Translation Function
+def translate(image, x, y):
+    M = np.float32([[1, 0, x], [0, 1, y]])
+    translated_image = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]))
+    return translated_image
+
+# Rotation Function
+def rotate(image, angle, center=None, scale=1.0):
+    (h, w) = image.shape[:2]
+    if center is None:
+        center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, angle, scale)
+    rotated_image = cv2.warpAffine(image, M, (w, h))
+    return rotated_image
+
+# Scaling Function
+def scale(image, scale_x, scale_y):
+    scaled_image = cv2.resize(image, None, fx=scale_x, fy=scale_y)
+    return scaled_image
+
+# Shearing Function
+def shear(image, shear_x, shear_y):
+    M = np.float32([[1, shear_x, 0], [shear_y, 1, 0]])
+    sheared_image = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]))
+    return sheared_image
+
+# Load the image
+image = cv2.imread('img.jpg')  # Make sure this image exists in your directory
+
+# Apply transformations
+translated_image = translate(image, 100, 100)
+rotated_image = rotate(image, 45)
+scaled_image = scale(image, 0.5, 0.5)
+sheared_image = shear(image, 0.2, 0.3)
+
+# Display results
+cv2.imshow('Original', image)
+cv2.imshow('Translated Image', translated_image)
+cv2.imshow('Rotated Image', rotated_image)
+cv2.imshow('Scaled Image', scaled_image)
+cv2.imshow('Sheared Image', sheared_image)
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()
