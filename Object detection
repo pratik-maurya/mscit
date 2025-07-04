@@ -1,0 +1,25 @@
+import cv2
+
+# Load image
+img = cv2.imread("stop.png")  # Make sure 'stop.png' exists in your directory
+
+# Convert to grayscale and RGB for detection and display
+img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+# Load trained cascade for stop sign detection (make sure 'stop_data.xml' is in your folder)
+stop_cascade = cv2.CascadeClassifier('stop_data.xml')
+
+# Detect objects
+found = stop_cascade.detectMultiScale(img_gray, minSize=(20, 20))
+amount_found = len(found)
+
+if amount_found != 0:
+    for (x, y, width, height) in found:
+        # Draw rectangle on RGB image
+        cv2.rectangle(img_rgb, (x, y), (x + width, y + height), (0, 255, 0), 5)
+
+# Show the image
+cv2.imshow('Object Detection', img_rgb)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
