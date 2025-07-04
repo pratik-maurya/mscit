@@ -1,0 +1,50 @@
+from PIL import Image
+import numpy as np
+
+def shift_image(img, depth_img, shift_amount=10):
+    """
+    Shift pixels of the image horizontally according to depth map to create a 3D effect.
+   
+    Args:
+        img (PIL.Image): The original image (RGBA).
+        depth_img (PIL.Image): The grayscale depth map image.
+        shift_amount (int): Maximum pixel shift amount.
+       
+    Returns:
+        PIL.Image: The shifted image with simulated depth.
+    """
+    img = img.convert("RGBA")
+    data = np.array(img)
+   
+    depth_img = depth_img.convert("L")  # Convert depth map to grayscale
+    depth_data = np.array(depth_img)
+   
+    # Calculate horizontal shifts from depth (scaled by shift_amount)
+    deltas = ((depth_data / 255.0) * float(shift_amount)).astype(int)
+   
+    # Initialize output image array with zeros (transparent)
+    shifted_data = np.zeros_like(data)
+   
+    height, width, _ = data.shape
+   
+    # Shift each pixel horizontally according to the depth map
+    for y, row in enumerate(deltas):
+        for x, dx in enumerate(row):
+            new_x = x + dx
+            if 0 <= new_x < width:
+                shifted_data[y, new_x] = data[y, x]
+   
+    # Convert numpy array back to PIL image
+    shifted_image = Image.fromarray(shifted_data.astype(np.uint8))
+    return shifted_image
+
+
+# Load original image and corresponding depth map
+img = Image.open("cube1.jpeg")
+depth_img = Image.open("cube2.jpeg")
+
+# Create shifted image to simulate 3D effect
+shifted_img = shift_image(img, depth_img, shift_amount=10)
+
+# Show the result
+shifted_img.show()
