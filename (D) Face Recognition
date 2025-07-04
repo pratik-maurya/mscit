@@ -1,0 +1,42 @@
+import cv2
+import face_recognition
+
+# Load the main image and convert it from BGR (OpenCV) to RGB (face_recognition)
+imgmain = face_recognition.load_image_file('random11.jpg')
+imgmain = cv2.cvtColor(imgmain, cv2.COLOR_BGR2RGB)
+
+# Load the test image and convert similarly
+imgTest = face_recognition.load_image_file('random12.jpg')
+imgTest = cv2.cvtColor(imgTest, cv2.COLOR_BGR2RGB)
+
+# Detect face locations and encodings in the main image
+faceLoc = face_recognition.face_locations(imgmain)[0]
+encodeElon = face_recognition.face_encodings(imgmain)[0]
+
+# Draw a rectangle around the face in the main image
+cv2.rectangle(imgmain, (faceLoc[3], faceLoc[0]), (faceLoc[1], faceLoc[2]), (255, 0, 255), 2)
+
+# Detect face locations and encodings in the test image
+faceLocTest = face_recognition.face_locations(imgTest)[0]
+encodeTest = face_recognition.face_encodings(imgTest)[0]
+
+# Draw a rectangle around the face in the test image
+cv2.rectangle(imgTest, (faceLocTest[3], faceLocTest[0]), (faceLocTest[1], faceLocTest[2]), (255, 0, 255), 2)
+
+# Compare faces and compute face distance
+results = face_recognition.compare_faces([encodeElon], encodeTest)
+faceDis = face_recognition.face_distance([encodeElon], encodeTest)
+
+# Print the results
+print("Match:", results, "Face Distance:", faceDis)
+
+# Display match result and distance on the test image
+cv2.putText(imgTest, f'{results[0]} {round(faceDis[0], 2)}', (20, 30),
+            cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
+
+# Show the images
+cv2.imshow('Main Image', imgmain)
+cv2.imshow('Test Image', imgTest)
+
+cv2.waitKey(0)
+cv2.destroyAllWindows()
