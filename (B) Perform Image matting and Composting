@@ -1,0 +1,48 @@
+from pymatting import *
+import numpy as np
+import cv2
+
+scale = 1.0
+
+# Load input image (RGB) and trimap (grayscale)
+image = load_image("4b1.png", "RGB", scale, "box")
+trimap = load_image("4b2.png", "GRAY", scale, "nearest")
+
+# Estimate alpha matte using Closed-Form matting
+alpha = estimate_alpha_cf(image, trimap)
+
+# Create a new background (gray color)
+new_background = np.zeros(image.shape)
+new_background[:, :] = [0.5, 0.5, 0.5]  # normalized RGB [0.5,0.5,0.5]
+
+# Estimate foreground and background using maximum likelihood method
+foreground, background = estimate_foreground_ml(image, alpha, return_background=True)
+
+# Save the alpha matte, foreground, and background
+save_image("output1.png", alpha)
+save_image("output2.png", foreground)
+save_image("output3.png", background)
+
+# Stack foreground and alpha to create cutout (RGBA)
+cutout = stack_images(foreground, alpha)
+save_image("output4.png", cutout)
+
+# Load cutout with alpha channel and new background image
+cutout = cv2.imread('output4.png', cv2.IMREAD_UNCHANGED)  # RGBA image
+new_background = cv2.imread('4b3.png')
+
+# Separate foreground (RGB) and alpha matte (normalized)
+foreground = cutout[:, :, :3]
+alpha_mask = cutout[:, :, 3] / 255.0
+
+# Resize new background to match foreground size
+newbg_resized = cv2.resize(new_background, (foreground.shape[1], foreground.shape[0]))
+
+# Composite foreground onto new background using alpha matte
+composite = np.zeros_like(foreground, dtype=np.uint8)
+for c in range(3):
+    composite[:, :, c] = (foreground[:, :, c] * alpha_mask +
+                         newbg_resized[:, :, c] * (1 - alpha_mask)).astype(np.uint8)
+
+# Save the final composited image
+cv2.imwrite('composite_image.png', composite)
